@@ -5,12 +5,6 @@ X, Y, W, H = 1587, 188, 326, 327
 
 sh = pyautogui.screenshot(region=(X, Y, W, H))
 
-import pyautogui
-
-X, Y, W, H = 1587, 188, 326, 327
-
-sh = pyautogui.screenshot(region=(X, Y, W, H))
-
 sh.save('screenshot.png')
 
 if pyautogui.locate('pics/1.png', 'screenshot.png'):
