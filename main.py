@@ -1,19 +1,19 @@
-import pyautogui
-from functions import click, scan
+import chess.engine
 
-X, Y, W, H = 1587, 188, 326, 327
+def main():
+    engine = chess.engine.SimpleEngine.popen_uci("stockfish/stockfish-windows-x86-64-avx2.exe")
 
-sh = pyautogui.screenshot(region=(X, Y, W, H))
+    # That blabla is the FEN of the starting position
+    board = chess.Board("3kr3/R7/2R5/8/P2P2P1/2P4P/2r5/6K1 b - - 0 1")
 
-sh.save('screenshot.png')
+    try:
+        result = engine.play(board, chess.engine.Limit(time=2.0))
+        board.push(result.move)
+        print("The next move is:", result.move)
+    except chess.engine.EngineError as e:
+        print("EngineError:", e)
 
-if pyautogui.locate('pics/1.png', 'screenshot.png'):
-    print("felfele mutat (fekete)")
-elif pyautogui.locate('pics/2.png', 'screenshot.png'):
-    print(f"lefele mutat (fekete) found at {pyautogui.locate('pics/2.png', 'screenshot.png')}")
-elif pyautogui.locate('third_image_to_find.png', 'screenshot.png'):
-    print("Third image found")
-elif pyautogui.locate('fourth_image_to_find.png', 'screenshot.png'):
-    print("Fourth image found")
-else:
-    print("No image found")
+    engine.quit()
+
+if __name__ == "__main__":
+    main()
