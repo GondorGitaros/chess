@@ -23,7 +23,6 @@ def show_next_step(fen):
 
     engine.quit()
 
-
 def main():
     while True:
         sleep(1)
@@ -32,10 +31,9 @@ def main():
         click(1852, 132) # copy fen
         sleep(0.1)
         fen = clipboard.paste()
-        print(fen)
         move, white = show_next_step(fen)
-        print(move, white)
         move = str(move)
+
         if white == False:
             scolumn = 8 - board[move[0]] + 1
             srow = int(move[1])
@@ -46,15 +44,11 @@ def main():
             scolumn = board[move[0]]
             erow = 8 - int(move[3]) + 1
             ecolumn = board[move[2]]
-        print(scolumn, srow)
+
         sleep(0.2)
         click(190 + ((scolumn)*121) - 60, 82 + ((srow)*121) - 60)
-        print(190 + ((scolumn)*121) - 60, 82 + ((srow)*121) - 60)
         sleep(0.2)
         click(190 + ((ecolumn)*121) - 60, 82 + ((erow)*121) - 60)
-        print(190 + ((ecolumn)*121) - 60, 82 + ((erow)*121) - 60)
-
-
 
 if __name__ == "__main__":
     main()
