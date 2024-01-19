@@ -1,4 +1,12 @@
 scan = 1857, 94
 copy fen = 1852, 132
 left corner = 190, 83
-box = 121x121
+box = 122x122
+
+sarga = 244, 246, 128
+sargaszold = 187, 204, 68
+zold = 119, 153, 84
+feher = 233, 237, 204
+
+topleft = 347, 132
+box = 110
