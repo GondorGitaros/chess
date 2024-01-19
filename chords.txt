@@ -2,6 +2,7 @@ scan = 1857, 94
 copy fen = 1852, 132
 left corner = 190, 83
 box = 122x122
+who is going to move (black or white) = 1364, 121 (black = 49, 46, 43) (white = 255, 255, 255) 
 
 sarga = 244, 246, 128
 sargaszold = 187, 204, 68
