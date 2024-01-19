@@ -1,7 +1,7 @@
 import chess.engine
 from time import sleep
-import clipboard
 from pyautogui import click
+from scan import scan
 
 board = {"a":1, "b":2, "c":3, "d":4, "e":5, "f":6, "g":7, "h":8}
 
@@ -25,12 +25,7 @@ def show_next_step(fen):
 
 def main():
     while True:
-        sleep(1)
-        click(1857, 94) # scan
-        sleep(3)
-        click(1852, 132) # copy fen
-        sleep(0.1)
-        fen = clipboard.paste()
+        fen = scan()
         move, white = show_next_step(fen)
         move = str(move)
 

@@ -66,6 +66,4 @@ def scan():
 
     # add the rest of the fen
     #######################
-    print(fen)
-
-scan()
+    return fen
