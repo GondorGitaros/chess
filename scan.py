@@ -9,7 +9,6 @@ PATH = "D:\\Code\\Git\\Main\\chess\\pieces\\"
 
 def scan():
     fen = ""
-    counter = 0
     replace_colors = [(244, 246, 128), (187, 204, 68), (119, 153, 84), (233, 237, 204)]
     for i in range(8):
         for j in range(8):
@@ -63,7 +62,19 @@ def scan():
 
     # remove the last slash
     fen = fen[:-1]
+    fen += " "
+    screen = pyautogui.screenshot()
+    # save the image
+    screen.save("images/fullpic.png")
+    img = Image.open("images/fullpic.png")
+    rgb = img.getpixel((1364, 121))
+    if rgb == (255, 255, 255):
+        fen += "w "
+    else:
+        fen += "b "
 
     # add the rest of the fen
     #######################
     return fen
+
+print(scan())
