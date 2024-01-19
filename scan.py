@@ -50,10 +50,22 @@ def scan():
             else:
                 fen += "1"
         fen += "/"
-    # repacle the 1s with the correct number
-    for i in range(8):
-        for j in range(1, 9):
-            fen = fen.replace("1"*j, str(j))
+
+    # the fen looks like this: 1K1R11N1/PPP1P11P/111111P1/111b1111/11111bB1/11b11111/b111bbbb/Bb1b1b1b/ 
+    # we need to remove the 1s (with a better solution than this)
+    fen = fen.replace("11111111", "8")
+    fen = fen.replace("1111111", "7")
+    fen = fen.replace("111111", "6")
+    fen = fen.replace("11111", "5")
+    fen = fen.replace("1111", "4")
+    fen = fen.replace("111", "3")
+    fen = fen.replace("11", "2")
+
+    # remove the last slash
+    fen = fen[:-1]
+
+    # add the rest of the fen
+    #######################
     print(fen)
 
 scan()
