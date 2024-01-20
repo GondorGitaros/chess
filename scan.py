@@ -65,6 +65,20 @@ def scan():
     # remove the last slash
     fen = fen[:-1]
 
-    # add the rest of the fen
-    #######################
-    return fen
+    fen += " "
+    screen = pyautogui.screenshot()
+    # save the image
+    screen.save("images/fullpic.png")
+    img = Image.open("images/fullpic.png")
+    rgb = img.getpixel((1364, 121))
+    if rgb == (255, 255, 255):
+
+        fen += " w - - 0 1"
+    else:
+        fen = fen[::-1]
+        fen += " b - - 0 1"
+        white = False
+
+    return fen, white
+
+print(scan())

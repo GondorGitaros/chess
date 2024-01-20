@@ -7,13 +7,11 @@ boardhm = {"a":1, "b":2, "c":3, "d":4, "e":5, "f":6, "g":7, "h":8}
 
 def show_next_step(fen):
     engine = chess.engine.SimpleEngine.popen_uci("stockfish/stockfish-windows-x86-64-avx2.exe")
-    white = False
 
     board = chess.Board(fen)
     for i in range(len(fen)):
         if fen[i] == " ":
             if fen[i+1] == "w":
-                white = True
                 break                
 
     result = engine.play(board, chess.engine.Limit(time=5))
