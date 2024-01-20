@@ -42,6 +42,7 @@ def main():
         click(190 + ((scolumn)*121) - 60, 82 + ((srow)*121) - 60)
         sleep(0.2)
         click(190 + ((ecolumn)*121) - 60, 82 + ((erow)*121) - 60)
+        sleep(0.4)
 
 if __name__ == "__main__":
     main()

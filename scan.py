@@ -5,8 +5,6 @@ TOP_LEFT_X, TOP_LEFT_Y = 190, 83
 BOX = 122
 PATH = "D:\\Code\\Git\\Main\\chess\\pieces\\"
 
-
-
 def scan():
     white = True
     fen = ""
@@ -22,7 +20,6 @@ def scan():
                         pixels[x, y] = (255, 255, 255)
             img_path = 'images/' + str(i+1) + str(j+1) + '.png'
             img.save(img_path)
-            
             
             if pyautogui.locate(PATH + "bb.png", img_path, confidence=0.6):
                 fen += "b"
@@ -53,7 +50,7 @@ def scan():
         fen += "/"
 
     # the fen looks like this: 1K1R11N1/PPP1P11P/111111P1/111b1111/11111bB1/11b11111/b111bbbb/Bb1b1b1b/ 
-    # we need to remove the 1s (with a better solution than this)
+    # we need to remove the 1s (with a better solution than this), and remove the last /
     fen = fen.replace("11111111", "8")
     fen = fen.replace("1111111", "7")
     fen = fen.replace("111111", "6")
@@ -61,8 +58,6 @@ def scan():
     fen = fen.replace("1111", "4")
     fen = fen.replace("111", "3")
     fen = fen.replace("11", "2")
-
-    # remove the last slash
     fen = fen[:-1]
 
     fen += " "
@@ -80,5 +75,3 @@ def scan():
         white = False
 
     return fen, white
-
-print(scan())
