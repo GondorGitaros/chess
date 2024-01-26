@@ -194,6 +194,7 @@ def main(args):
   if args.unflip:
       fen = unflipFEN(fen)
   short_fen = shortenFEN(fen)
+  '''
   # Use the worst case certainty as our final uncertainty score
   certainty = tile_certainties.min()
 
@@ -205,12 +206,13 @@ def main(args):
   active = args.active
   print("---\nPredicted FEN:\n%s %s - - 0 1" % (short_fen, active))
   print("Final Certainty: %.1f%%" % (certainty*100))
+  '''
   white = True
   screen = pyautogui.screenshot()
     # save the image
   screen.save("images/fullpic.png")
   img = Image.open("images/fullpic.png")
-  rgb = img.getpixel((1364, 121))
+  rgb = img.getpixel((1335, 159))
   if rgb == (255, 255, 255):
       fen += " w - - 0 1"
   else:
