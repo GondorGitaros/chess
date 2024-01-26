@@ -22,20 +22,26 @@ def show_next_step(fen):
     engine.quit()
 
 def main():
+    sleep(5)
     while True:
         screen = pyautogui.screenshot()
         screen.save("cb.png")
-        fen = scan("cb.png")
+        fen, white = scan("cb.png")
         print(fen)
         move = show_next_step(fen)
         print(move)
         move = str(move)
 
-        scolumn = 8 - boardhm[move[0]] + 1
-        srow = int(move[1])
-        ecolumn = 8 - boardhm[move[2]] + 1
-        erow = int(move[3])
-        ecolumn = boardhm[move[2]]
+        if white == False:
+            scolumn = 8 - boardhm[move[0]] + 1
+            srow = int(move[1])
+            ecolumn = 8 - boardhm[move[2]] + 1
+            erow = int(move[3])
+        else:
+            srow = 8 - int(move[1]) + 1
+            scolumn = boardhm[move[0]]
+            erow = 8 - int(move[3]) + 1
+            ecolumn = boardhm[move[2]]
 
         sleep(0.2)
         click(190 + ((scolumn)*121) - 60, 82 + ((srow)*121) - 60)

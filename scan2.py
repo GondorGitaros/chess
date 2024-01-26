@@ -37,7 +37,8 @@
 # 
 # A lot of tensorflow code here is heavily adopted from the 
 # [tensorflow tutorials](https://www.tensorflow.org/versions/0.6.0/tutorials/pdes/index.html)
-
+import pyautogui
+from PIL import Image
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' # Ignore Tensorflow INFO debug messages
 import tensorflow as tf
@@ -204,7 +205,19 @@ def main(args):
   active = args.active
   print("---\nPredicted FEN:\n%s %s - - 0 1" % (short_fen, active))
   print("Final Certainty: %.1f%%" % (certainty*100))
-  return str(fen)
+  white = True
+  screen = pyautogui.screenshot()
+    # save the image
+  screen.save("images/fullpic.png")
+  img = Image.open("images/fullpic.png")
+  rgb = img.getpixel((1364, 121))
+  if rgb == (255, 255, 255):
+      fen += " w - - 0 1"
+  else:
+      fen = fen[::-1]
+      fen += " b - - 0 1"
+      white = False
+  return str(fen), white
 
 def scan(fp):
   np.set_printoptions(suppress=True, precision=3)
