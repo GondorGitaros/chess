@@ -2,6 +2,7 @@ import chess.engine
 from time import sleep
 from pyautogui import click
 from scan2 import scan
+import pyautogui
 
 boardhm = {"a":1, "b":2, "c":3, "d":4, "e":5, "f":6, "g":7, "h":8}
 
@@ -22,21 +23,19 @@ def show_next_step(fen):
 
 def main():
     while True:
-        fen, white  = scan()
+        screen = pyautogui.screenshot()
+        screen.save("cb.png")
+        fen = scan("cb.png")
+        print(fen)
         move = show_next_step(fen)
         print(move)
         move = str(move)
 
-        if white == False:
-            scolumn = 8 - boardhm[move[0]] + 1
-            srow = int(move[1])
-            ecolumn = 8 - boardhm[move[2]] + 1
-            erow = int(move[3])
-        else:
-            srow = 8 - int(move[1]) + 1
-            scolumn = boardhm[move[0]]
-            erow = 8 - int(move[3]) + 1
-            ecolumn = boardhm[move[2]]
+        scolumn = 8 - boardhm[move[0]] + 1
+        srow = int(move[1])
+        ecolumn = 8 - boardhm[move[2]] + 1
+        erow = int(move[3])
+        ecolumn = boardhm[move[2]]
 
         sleep(0.2)
         click(190 + ((scolumn)*121) - 60, 82 + ((srow)*121) - 60)

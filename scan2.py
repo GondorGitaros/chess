@@ -182,8 +182,14 @@ def main(args):
   # Initialize predictor, takes a while, but only needed once
   predictor = ChessboardPredictor()
   fen, tile_certainties = predictor.getPrediction(tiles)
-  predictor.close()
-  return str(fen)
+  fen = fen.replace("11111111", "8")
+  fen = fen.replace("1111111", "7")
+  fen = fen.replace("111111", "6")
+  fen = fen.replace("11111", "5")
+  fen = fen.replace("1111", "4")
+  fen = fen.replace("111", "3")
+  fen = fen.replace("11", "2")
+  
   if args.unflip:
       fen = unflipFEN(fen)
   short_fen = shortenFEN(fen)
@@ -198,6 +204,7 @@ def main(args):
   active = args.active
   print("---\nPredicted FEN:\n%s %s - - 0 1" % (short_fen, active))
   print("Final Certainty: %.1f%%" % (certainty*100))
+  return str(fen)
 
 def scan(fp):
   np.set_printoptions(suppress=True, precision=3)
