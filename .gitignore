@@ -5,20 +5,4 @@
 *.gif
 
 time.txt
-stockfish/
-
-!example_input.png
-
-# Ignore chessboard input images and tile outputs
-chessboards/
-tiles/
-
-# Ignore reddit username/password config file
-auth_config.py
-praw.ini
-
-# Ignore tracking files
-*.txt
-!requirements.txt
-
-!readme_images/*
+stockfish/*
