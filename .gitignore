@@ -3,6 +3,7 @@
 *.png
 *.jpg
 *.gif
+time.txt
 
 !example_input.png
 

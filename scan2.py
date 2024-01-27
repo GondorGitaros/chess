@@ -210,8 +210,8 @@ def main(args):
   white = True
   screen = pyautogui.screenshot()
     # save the image
-  screen.save("images/fullpic.png")
-  img = Image.open("images/fullpic.png")
+  screen.save("fullpic.png")
+  img = Image.open("fullpic.png")
   rgb = img.getpixel((1335, 159))
   if rgb == (255, 255, 255):
       fen += " w - - 0 1"
