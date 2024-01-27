@@ -3,7 +3,9 @@
 *.png
 *.jpg
 *.gif
+*.txt
 
-time.txt
+!requirements.txt
+calcavgtime.py
 stockfish/*
 __pycache__/*

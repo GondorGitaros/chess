@@ -1,77 +1,189 @@
-from PIL import Image
 import pyautogui
+from PIL import Image
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' # Ignore Tensorflow INFO debug messages
+import tensorflow as tf
+import numpy as np
 
-TOP_LEFT_X, TOP_LEFT_Y = 190, 83
-BOX = 122
-PATH = "D:\\Code\\Git\\Main\\chess\\pieces\\"
+from helper_functions import shortenFEN, unflipFEN
+import helper_image_loading
+import chessboard_finder
 
-def scan():
-    white = True
-    fen = ""
-    replace_colors = [(244, 246, 128), (187, 204, 68), (119, 153, 84), (233, 237, 204)]
-    for i in range(8):
-        for j in range(8):
-            img = pyautogui.screenshot(region=(j * BOX + TOP_LEFT_X, i * BOX + TOP_LEFT_Y, BOX, BOX))
-            pixels = img.load() 
+def load_graph(frozen_graph_filepath):
+    # Load and parse the protobuf file to retrieve the unserialized graph_def.
+    with tf.io.gfile.GFile(frozen_graph_filepath, "rb") as f:
+        graph_def = tf.compat.v1.GraphDef()
+        graph_def.ParseFromString(f.read())
 
-            for y in range(img.size[1]): 
-                for x in range(img.size[0]): 
-                    if pixels[x, y] in replace_colors:
-                        pixels[x, y] = (255, 255, 255)
-            img_path = 'images/' + str(i+1) + str(j+1) + '.png'
-            img.save(img_path)
-            
-            if pyautogui.locate(PATH + "bb.png", img_path, confidence=0.6):
-                fen += "b"
-            elif pyautogui.locate(PATH + "bp.png", img_path, confidence=0.6):
-                fen += "p"
-            elif pyautogui.locate(PATH + "bk.png", img_path, confidence=0.6):
-                fen += "k"
-            elif pyautogui.locate(PATH + "bn.png", img_path, confidence=0.6):
-                fen += "n"
-            elif pyautogui.locate(PATH + "bq.png", img_path, confidence=0.4):
-                fen += "q"
-            elif pyautogui.locate(PATH + "br.png", img_path, confidence=0.4):
-                fen += "r"
-            elif pyautogui.locate(PATH + "wb.png", img_path, confidence=0.4):
-                fen += "B"
-            elif pyautogui.locate(PATH + "wp.png", img_path, confidence=0.35):
-                fen += "P"
-            elif pyautogui.locate(PATH + "wk.png", img_path, confidence=0.35):
-                fen += "K"
-            elif pyautogui.locate(PATH + "wn.png", img_path, confidence=0.35):
-                fen += "N"
-            elif pyautogui.locate(PATH + "wq.png", img_path, confidence=0.35):
-                fen += "Q"
-            elif pyautogui.locate(PATH + "wr.png", img_path, confidence=0.35):
-                fen += "R"    
-            else:
-                fen += "1"
-        fen += "/"
+    # Import graph def and return.
+    with tf.Graph().as_default() as graph:
+        # Prefix every op/nodes in the graph.
+        tf.import_graph_def(graph_def, name="tcb")
+    return graph
 
-    # the fen looks like this: 1K1R11N1/PPP1P11P/111111P1/111b1111/11111bB1/11b11111/b111bbbb/Bb1b1b1b/ 
-    # we need to remove the 1s (with a better solution than this), and remove the last /
-    fen = fen.replace("11111111", "8")
-    fen = fen.replace("1111111", "7")
-    fen = fen.replace("111111", "6")
-    fen = fen.replace("11111", "5")
-    fen = fen.replace("1111", "4")
-    fen = fen.replace("111", "3")
-    fen = fen.replace("11", "2")
-    fen = fen[:-1]
+class ChessboardPredictor(object):
+  def __init__(self, frozen_graph_path='frozen_graph.pb'):
+    # Restore model using a frozen graph.
+    print("\t Loading model '%s'" % frozen_graph_path)
+    graph = load_graph(frozen_graph_path)
+    self.sess = tf.compat.v1.Session(graph=graph)
 
-    fen += " "
-    screen = pyautogui.screenshot()
-    # save the image
-    screen.save("images/fullpic.png")
-    img = Image.open("images/fullpic.png")
-    rgb = img.getpixel((1364, 121))
-    if rgb == (255, 255, 255):
+    self.x = graph.get_tensor_by_name('tcb/Input:0')
+    self.keep_prob = graph.get_tensor_by_name('tcb/KeepProb:0')
+    self.prediction = graph.get_tensor_by_name('tcb/prediction:0')
+    self.probabilities = graph.get_tensor_by_name('tcb/probabilities:0')
+    print("\t Model restored.")
 
-        fen += " w - - 0 1"
-    else:
-        fen = fen[::-1]
-        fen += " b - - 0 1"
-        white = False
+  def getPrediction(self, tiles):
+    """Run trained neural network on tiles generated from image"""
+    if tiles is None or len(tiles) == 0:
+      print("Couldn't parse chessboard")
+      return None, 0.0
+    
+    # Reshape into Nx1024 rows of input data, format used by neural network
+    validation_set = np.swapaxes(np.reshape(tiles, [32*32, 64]),0,1)
 
-    return fen, white
+    # Run neural network on data
+    guess_prob, guessed = self.sess.run(
+      [self.probabilities, self.prediction], 
+      feed_dict={self.x: validation_set, self.keep_prob: 1.0})
+    
+    # Prediction bounds
+    a = np.array(list(map(lambda x: x[0][x[1]], zip(guess_prob, guessed))))
+    tile_certainties = a.reshape([8,8])[::-1,:]
+
+    # Convert guess into FEN string
+    # guessed is tiles A1-H8 rank-order, so to make a FEN we just need to flip the files from 1-8 to 8-1
+    labelIndex2Name = lambda label_index: ' KQRBNPkqrbnp'[label_index]
+    pieceNames = list(map(lambda k: '1' if k == 0 else labelIndex2Name(k), guessed)) # exchange ' ' for '1' for FEN
+    fen = '/'.join([''.join(pieceNames[i*8:(i+1)*8]) for i in reversed(range(8))])
+    return fen, tile_certainties
+
+  ## Wrapper for chessbot
+  def makePrediction(self, url):
+    """Try and return a FEN prediction and certainty for URL, return Nones otherwise"""
+    img, url = helper_image_loading.loadImageFromURL(url, max_size_bytes=2000000)
+    result = [None, None, None]
+    
+    # Exit on failure to load image
+    if img is None:
+      print('Couldn\'t load URL: "%s"' % url)
+      return result
+
+    # Resize image if too large
+    img = helper_image_loading.resizeAsNeeded(img)
+
+    # Exit on failure if image was too large teo resize
+    if img is None:
+      print('Image too large to resize: "%s"' % url)
+      return result
+
+    # Look for chessboard in image, get corners and split chessboard into tiles
+    tiles, corners = chessboard_finder.findGrayscaleTilesInImage(img)
+
+    # Exit on failure to find chessboard in image
+    if tiles is None:
+      print('Couldn\'t find chessboard in image')
+      return result
+    
+    # Make prediction on input tiles
+    fen, tile_certainties = self.getPrediction(tiles)
+    
+    # Use the worst case certainty as our final uncertainty score
+    certainty = tile_certainties.min()
+
+    # Get visualize link
+    visualize_link = helper_image_loading.getVisualizeLink(corners, url)
+
+    # Update result and return
+    result = [fen, certainty, visualize_link]
+    return result
+
+  def close(self):
+    print("Closing session.")
+    self.sess.close()
+
+###########################################################
+# MAIN CLI
+
+def main(args):
+  # Load image from filepath or URL
+  if args.filepath:
+    # Load image from file
+    img = helper_image_loading.loadImageFromPath(args.filepath)
+    args.url = None # Using filepath.
+  else:
+    img, args.url = helper_image_loading.loadImageFromURL(args.url)
+
+  # Exit on failure to load image
+  if img is None:
+    raise Exception('Couldn\'t load URL: "%s"' % args.url)
+    
+  # Resize image if too large
+  # img = helper_image_loading.resizeAsNeeded(img)
+
+  # Look for chessboard in image, get corners and split chessboard into tiles
+  tiles, corners = chessboard_finder.findGrayscaleTilesInImage(img)
+
+  # Exit on failure to find chessboard in image
+  if tiles is None:
+    raise Exception('Couldn\'t find chessboard in image')
+
+  # Create Visualizer url link
+  if args.url:
+    viz_link = helper_image_loading.getVisualizeLink(corners, args.url)
+    print('---\nVisualize tiles link:\n %s\n---' % viz_link)
+
+  if args.url:
+    print("\n--- Prediction on url %s ---" % args.url)
+  else:
+    print("\n--- Prediction on file %s ---" % args.filepath)
+  
+  # Initialize predictor, takes a while, but only needed once
+  predictor = ChessboardPredictor()
+  fen, tile_certainties = predictor.getPrediction(tiles)
+  fen = fen.replace("11111111", "8")
+  fen = fen.replace("1111111", "7")
+  fen = fen.replace("111111", "6")
+  fen = fen.replace("11111", "5")
+  fen = fen.replace("1111", "4")
+  fen = fen.replace("111", "3")
+  fen = fen.replace("11", "2")
+  
+  if args.unflip:
+      fen = unflipFEN(fen)
+  short_fen = shortenFEN(fen)
+  '''
+  # Use the worst case certainty as our final uncertainty score
+  certainty = tile_certainties.min()
+
+  print('Per-tile certainty:')
+  print(tile_certainties)
+  print("Certainty range [%g - %g], Avg: %g" % (
+    tile_certainties.min(), tile_certainties.max(), tile_certainties.mean()))
+
+  active = args.active
+  print("---\nPredicted FEN:\n%s %s - - 0 1" % (short_fen, active))
+  print("Final Certainty: %.1f%%" % (certainty*100))
+  '''
+  white = True
+  img = Image.open("cb.png")
+  rgb = img.getpixel((1335, 159))
+  if rgb == (255, 255, 255):
+      fen += " w - - 0 1"
+  else:
+      fen = fen[::-1]
+      fen += " b - - 0 1"
+      white = False
+  return str(fen), white
+
+def scan(fp):
+  np.set_printoptions(suppress=True, precision=3)
+  import argparse
+  parser = argparse.ArgumentParser(description='Predict a chessboard FEN from supplied local image link or URL')
+  parser.add_argument('--url', help='URL of image (ex. http://imgur.com/u4zF5Hj.png)')
+  parser.add_argument('--filepath', default=fp ,help='filepath to image (ex. u4zF5Hj.png)')
+  parser.add_argument('--unflip', default=False, action='store_true', help='revert the image of a flipped chessboard')
+  parser.add_argument('--active', default='w')
+  args = parser.parse_args()
+  return main(args)
