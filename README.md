@@ -1,2 +1,2 @@
 # Chess bot for solving puzzles
-It is useing stockfish 16
+It is using stockfish 16
