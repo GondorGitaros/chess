@@ -1,10 +1,14 @@
 import chess.engine
 from time import sleep, perf_counter
-from pyautogui import click
 from scan import scan
 import pyautogui
 
 boardhm = {"a":1, "b":2, "c":3, "d":4, "e":5, "f":6, "g":7, "h":8}
+
+CHESS_BOARD_X, CHESS_BOARD_Y = 190, 82
+TILE_SIZE = 121
+# I use 60 because it can't be divided by 2
+TITLE_SIZE_DIV_2 = 60
 
 def show_next_step(fen):
     engine = chess.engine.SimpleEngine.popen_uci("stockfish/stockfish-windows-x86-64-avx2.exe")
@@ -18,8 +22,6 @@ def show_next_step(fen):
     result = engine.play(board, chess.engine.Limit(depth=21))
     board.push(result.move)
     return result.move
-
-    engine.quit()
 
 def main():
     sleep(5)
@@ -45,9 +47,9 @@ def main():
             ecolumn = boardhm[move[2]]
 
         sleep(0.1)
-        click(190 + ((scolumn)*121) - 60, 82 + ((srow)*121) - 60)
+        pyautogui.click(CHESS_BOARD_X + ((scolumn)*TILE_SIZE) - TITLE_SIZE_DIV_2, CHESS_BOARD_Y + ((srow)*TILE_SIZE) - TITLE_SIZE_DIV_2)
         sleep(0.1)
-        click(190 + ((ecolumn)*121) - 60, 82 + ((erow)*121) - 60)
+        pyautogui.click(CHESS_BOARD_X + ((ecolumn)*TILE_SIZE) - TITLE_SIZE_DIV_2, CHESS_BOARD_Y + ((erow)*TILE_SIZE) - TITLE_SIZE_DIV_2)
         sleep(1)
         stop = perf_counter()
         with open("time.txt", "a") as f:
