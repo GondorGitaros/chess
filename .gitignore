@@ -3,7 +3,9 @@
 *.png
 *.jpg
 *.gif
+
 time.txt
+stockfish/
 
 !example_input.png
 
