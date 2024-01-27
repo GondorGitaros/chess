@@ -1,5 +1,5 @@
 import chess.engine
-from time import sleep
+from time import sleep, perf_counter
 from pyautogui import click
 from scan2 import scan
 import pyautogui
@@ -15,7 +15,7 @@ def show_next_step(fen):
             if fen[i+1] == "w":
                 break                
 
-    result = engine.play(board, chess.engine.Limit(time=5))
+    result = engine.play(board, chess.engine.Limit(depth=21))
     board.push(result.move)
     return result.move
 
@@ -24,6 +24,7 @@ def show_next_step(fen):
 def main():
     sleep(5)
     while True:
+        start = perf_counter()
         screen = pyautogui.screenshot()
         screen.save("cb.png")
         fen, white = scan("cb.png")
@@ -43,11 +44,14 @@ def main():
             erow = 8 - int(move[3]) + 1
             ecolumn = boardhm[move[2]]
 
-        sleep(0.2)
+        sleep(0.1)
         click(190 + ((scolumn)*121) - 60, 82 + ((srow)*121) - 60)
-        sleep(0.2)
+        sleep(0.1)
         click(190 + ((ecolumn)*121) - 60, 82 + ((erow)*121) - 60)
-        sleep(0.4)
+        sleep(1)
+        stop = perf_counter()
+        with open("time.txt", "a") as f:
+            f.write(str(stop - start) + "\n")
 
 if __name__ == "__main__":
     main()
