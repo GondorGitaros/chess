@@ -142,33 +142,10 @@ def main(args):
   # Initialize predictor, takes a while, but only needed once
   predictor = ChessboardPredictor()
   fen, tile_certainties = predictor.getPrediction(tiles)
-  fen = fen.replace("11111111", "8")
-  fen = fen.replace("1111111", "7")
-  fen = fen.replace("111111", "6")
-  fen = fen.replace("11111", "5")
-  fen = fen.replace("1111", "4")
-  fen = fen.replace("111", "3")
-  fen = fen.replace("11", "2")
-  
-  if args.unflip:
-      fen = unflipFEN(fen)
-  short_fen = shortenFEN(fen)
-  '''
-  # Use the worst case certainty as our final uncertainty score
-  certainty = tile_certainties.min()
-
-  print('Per-tile certainty:')
-  print(tile_certainties)
-  print("Certainty range [%g - %g], Avg: %g" % (
-    tile_certainties.min(), tile_certainties.max(), tile_certainties.mean()))
-
-  active = args.active
-  print("---\nPredicted FEN:\n%s %s - - 0 1" % (short_fen, active))
-  print("Final Certainty: %.1f%%" % (certainty*100))
-  '''
+  fen = shortenFEN(fen)
   white = True
   img = Image.open("cb.png")
-  rgb = img.getpixel((1335, 159))
+  rgb = img.getpixel((1260, 162))
   if rgb == (255, 255, 255):
       fen += " w - - 0 1"
   else:
